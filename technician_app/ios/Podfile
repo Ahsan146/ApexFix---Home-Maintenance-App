@@ -1,0 +1,30 @@
+platform :ios, '15.0'
+
+# CocoaPods analytics are completely optional
+plugin 'cocoapods-keys' if Gem::Specification.find_all_by_name('cocoapods-keys').any?
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.dirname(File.expand_path(__FILE__))
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    
+    # --- THIS FIXES THE "-G" SIMULATOR ERROR ---
+    if target.name == 'BoringSSL-GRPC'
+      target.source_build_phase.files.each do |file|
+        if file.settings && file.settings['COMPILER_FLAGS']
+          flags = file.settings['COMPILER_FLAGS'].split
+          flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
+          file.settings['COMPILER_FLAGS'] = flags.join(' ')
+        end
+      end
+    end
+    # ------------------------------------------
+    
+  end
+end
