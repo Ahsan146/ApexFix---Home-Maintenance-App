@@ -1,22 +1,43 @@
+platform :ios, '15.0'
+
+plugin 'cocoapods-keys' if Gem::Specification.find_all_by_name('cocoapods-keys').any?
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.dirname(File.expand_path(__FILE__))
+end
+
+# This script intercepts the build loop right before execution to strip the broken -G flag
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
     
-    # 1. Force Allow Non-modular Includes (Fixes modern Xcode 16+ Simulator blocks)
+    # Force modular framework modules compatibility
     target.build_configurations.each do |config|
       config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
     end
-    
-    # 2. Drop the problematic -G option flag entirely
+  end
+
+  # Deeper hook targeting the exact source file compilation definitions 
+  installer.development_pod_targets.each do |target|
     if target.name == 'BoringSSL-GRPC'
       target.source_build_phase.files.each do |file|
         if file.settings && file.settings['COMPILER_FLAGS']
-          flags = file.settings['COMPILER_FLAGS'].split
-          flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
-          file.settings['COMPILER_FLAGS'] = flags.join(' ')
+          file.settings['COMPILER_FLAGS'] = file.settings['COMPILER_FLAGS'].gsub('-GCC_WARN_INHIBIT_ALL_WARNINGS', '')
         end
       end
     end
-    
+  end
+
+  installer.aggregate_targets.each do |target|
+    if target.name == 'BoringSSL-GRPC'
+      target.source_build_phase.files.each do |file|
+        if file.settings && file.settings['COMPILER_FLAGS']
+          file.settings['COMPILER_FLAGS'] = file.settings['COMPILER_FLAGS'].gsub('-GCC_WARN_INHIBIT_ALL_WARNINGS', '')
+        end
+      end
+    end
   end
 end
