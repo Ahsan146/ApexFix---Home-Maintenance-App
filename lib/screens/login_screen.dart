@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 
@@ -37,12 +38,13 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (email.isEmpty || !email.contains('@')) {
-      setState(() => _errorMessage = 'Please enter a valid email address.');
+    final emailRegex = RegExp(r'^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$');
+    if (email.isEmpty || !emailRegex.hasMatch(email) || email.length > 100) {
+      setState(() => _errorMessage = 'Please enter a valid email address (max 100 characters).');
       return;
     }
-    if (password.length < 6) {
-      setState(() => _errorMessage = 'Password must be at least 6 characters.');
+    if (password.length < 6 || password.length > 128) {
+      setState(() => _errorMessage = 'Password must be between 6 and 128 characters.');
       return;
     }
 
@@ -53,12 +55,13 @@ class _LoginScreenState extends State<LoginScreen> {
       final phone = _phoneController.text.trim();
       final confirmPass = _confirmPasswordController.text.trim();
 
-      if (name.isEmpty) {
-        setState(() => _errorMessage = 'Please enter your full name.');
+      if (name.isEmpty || name.length > 80) {
+        setState(() => _errorMessage = 'Please enter your full name (max 80 characters).');
         return;
       }
-      if (phone.isEmpty) {
-        setState(() => _errorMessage = 'Please enter your phone number.');
+      final phoneRegex = RegExp(r'^\+?[0-9\s\-]{10,20}$');
+      if (phone.isEmpty || !phoneRegex.hasMatch(phone)) {
+        setState(() => _errorMessage = 'Please enter a valid phone number (e.g. +92 300 1234567).');
         return;
       }
       if (password != confirmPass) {
@@ -421,82 +424,83 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 16),
-
-                // Quick Demo Accounts Section
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEEF2FF),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFC7D2FE)),
+                // Quick Demo Accounts Section (Debug Mode Only)
+                if (kDebugMode) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEEF2FF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFC7D2FE)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.bolt, color: Color(0xFF4F46E5), size: 16),
+                            SizedBox(width: 4),
+                            Text(
+                              'Quick Demo Accounts (Development Only):',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF3730A3),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            ActionChip(
+                              avatar: const CircleAvatar(
+                                backgroundColor: Color(0xFF4F46E5),
+                                child: Text('H', style: TextStyle(color: Colors.white, fontSize: 10)),
+                              ),
+                              label: const Text('Hamza Malik (DHA Lahore)', style: TextStyle(fontSize: 11)),
+                              backgroundColor: Colors.white,
+                              onPressed: () {
+                                _emailController.text = 'hamza.malik@gmail.com';
+                                _passwordController.text = 'password123';
+                                app.loginWithEmail('hamza.malik@gmail.com', 'password123');
+                              },
+                            ),
+                            ActionChip(
+                              avatar: const CircleAvatar(
+                                backgroundColor: Color(0xFF047857),
+                                child: Text('A', style: TextStyle(color: Colors.white, fontSize: 10)),
+                              ),
+                              label: const Text('Ayesha Khan (Gulberg)', style: TextStyle(fontSize: 11)),
+                              backgroundColor: Colors.white,
+                              onPressed: () {
+                                _emailController.text = 'ayesha.khan@gmail.com';
+                                _passwordController.text = 'password123';
+                                app.loginWithEmail('ayesha.khan@gmail.com', 'password123');
+                              },
+                            ),
+                            ActionChip(
+                              avatar: const CircleAvatar(
+                                backgroundColor: Color(0xFFB45309),
+                                child: Text('Z', style: TextStyle(color: Colors.white, fontSize: 10)),
+                              ),
+                              label: const Text('Zainab Tariq (Islamabad)', style: TextStyle(fontSize: 11)),
+                              backgroundColor: Colors.white,
+                              onPressed: () {
+                                _emailController.text = 'zainab.tariq@gmail.com';
+                                _passwordController.text = 'password123';
+                                app.loginWithEmail('zainab.tariq@gmail.com', 'password123');
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.bolt, color: Color(0xFF4F46E5), size: 16),
-                          SizedBox(width: 4),
-                          Text(
-                            'Quick Demo Accounts (Seeded Profiles):',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF3730A3),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 6,
-                        children: [
-                          ActionChip(
-                            avatar: const CircleAvatar(
-                              backgroundColor: Color(0xFF4F46E5),
-                              child: Text('H', style: TextStyle(color: Colors.white, fontSize: 10)),
-                            ),
-                            label: const Text('Hamza Malik (DHA Lahore)', style: TextStyle(fontSize: 11)),
-                            backgroundColor: Colors.white,
-                            onPressed: () {
-                              _emailController.text = 'hamza.malik@gmail.com';
-                              _passwordController.text = 'password123';
-                              app.loginWithEmail('hamza.malik@gmail.com', 'password123');
-                            },
-                          ),
-                          ActionChip(
-                            avatar: const CircleAvatar(
-                              backgroundColor: Color(0xFF047857),
-                              child: Text('A', style: TextStyle(color: Colors.white, fontSize: 10)),
-                            ),
-                            label: const Text('Ayesha Khan (Gulberg)', style: TextStyle(fontSize: 11)),
-                            backgroundColor: Colors.white,
-                            onPressed: () {
-                              _emailController.text = 'ayesha.khan@gmail.com';
-                              _passwordController.text = 'password123';
-                              app.loginWithEmail('ayesha.khan@gmail.com', 'password123');
-                            },
-                          ),
-                          ActionChip(
-                            avatar: const CircleAvatar(
-                              backgroundColor: Color(0xFFB45309),
-                              child: Text('Z', style: TextStyle(color: Colors.white, fontSize: 10)),
-                            ),
-                            label: const Text('Zainab Tariq (Islamabad)', style: TextStyle(fontSize: 11)),
-                            backgroundColor: Colors.white,
-                            onPressed: () {
-                              _emailController.text = 'zainab.tariq@gmail.com';
-                              _passwordController.text = 'password123';
-                              app.loginWithEmail('zainab.tariq@gmail.com', 'password123');
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ],
             ),
           ),

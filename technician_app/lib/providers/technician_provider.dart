@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/models.dart';
 import '../services/seed_data.dart';
 import '../services/technician_database_service.dart';
@@ -67,20 +69,46 @@ class TechnicianProvider extends ChangeNotifier {
   Future<void> login({required String email, required String password}) async {
     _isLoading = true;
     notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 400));
 
-    // Match seeded technician by email if found, otherwise use Tariq Mahmood
-    final matched = SeedData.technicians.firstWhere(
-      (t) => t.email.toLowerCase() == email.trim().toLowerCase(),
-      orElse: () => SeedData.technicians.first,
-    );
+    try {
+      if (Firebase.apps.isNotEmpty) {
+        try {
+          final auth = FirebaseAuth.instance;
+          final userCred = await auth.signInWithEmailAndPassword(
+            email: email.trim(),
+            password: password.trim(),
+          );
+          final uid = userCred.user?.uid ?? 'tech_${email.hashCode.abs()}';
+          final matched = SeedData.technicians.firstWhere(
+            (t) => t.email.toLowerCase() == email.trim().toLowerCase(),
+            orElse: () => SeedData.technicians.first.copyWith(id: uid, email: email.trim()),
+          );
+          _currentTechnician = matched;
+          _incomingRequests = isOnline ? _db.getIncomingJobs() : [];
+          _jobsHistory = _db.getJobsHistory();
+          _isLoading = false;
+          notifyListeners();
+          return;
+        } on FirebaseAuthException {
+          rethrow;
+        } catch (_) {
+          // Fall back to local store
+        }
+      }
 
-    _currentTechnician = matched;
-    _incomingRequests = isOnline ? _db.getIncomingJobs() : [];
-    _jobsHistory = _db.getJobsHistory();
+      await Future.delayed(const Duration(milliseconds: 300));
+      final matched = SeedData.technicians.firstWhere(
+        (t) => t.email.toLowerCase() == email.trim().toLowerCase(),
+        orElse: () => SeedData.technicians.first,
+      );
 
-    _isLoading = false;
-    notifyListeners();
+      _currentTechnician = matched;
+      _incomingRequests = isOnline ? _db.getIncomingJobs() : [];
+      _jobsHistory = _db.getJobsHistory();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> register({
@@ -93,28 +121,43 @@ class TechnicianProvider extends ChangeNotifier {
   }) async {
     _isLoading = true;
     notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 400));
 
-    _currentTechnician = Technician(
-      id: 'tech_${DateTime.now().millisecondsSinceEpoch}',
-      fullName: fullName.trim(),
-      email: email.trim(),
-      phoneNumber: phoneNumber.trim().isNotEmpty ? phoneNumber.trim() : '+92 300 4567891',
-      specialties: specialties.isNotEmpty ? specialties : ['AC & Cooling', 'HVAC Diagnostics'],
-      rating: 5.0,
-      reviewCount: 0,
-      completedJobsCount: 0,
-      availability: TechnicianAvailability.online,
-      vehicleInfo: vehicleInfo.trim().isNotEmpty ? vehicleInfo.trim() : 'Honda CD 70',
-      bio: bio.trim().isNotEmpty ? bio.trim() : 'Certified ApexFix Specialist',
-      todayEarnings: 0.0,
-      totalWalletBalance: 0.0,
-      isVerified: true,
-    );
+    try {
+      String uid = 'tech_${DateTime.now().millisecondsSinceEpoch}';
+      if (Firebase.apps.isNotEmpty) {
+        try {
+          final auth = FirebaseAuth.instance;
+          final userCred = await auth.createUserWithEmailAndPassword(
+            email: email.trim(),
+            password: 'password123',
+          );
+          uid = userCred.user?.uid ?? uid;
+          await userCred.user?.updateDisplayName(fullName.trim());
+        } catch (_) {}
+      }
 
-    _incomingRequests = _db.getIncomingJobs();
-    _isLoading = false;
-    notifyListeners();
+      _currentTechnician = Technician(
+        id: uid,
+        fullName: fullName.trim(),
+        email: email.trim(),
+        phoneNumber: phoneNumber.trim().isNotEmpty ? phoneNumber.trim() : '+92 300 4567891',
+        specialties: specialties.isNotEmpty ? specialties : ['AC & Cooling', 'HVAC Diagnostics'],
+        rating: 5.0,
+        reviewCount: 0,
+        completedJobsCount: 0,
+        availability: TechnicianAvailability.online,
+        vehicleInfo: vehicleInfo.trim().isNotEmpty ? vehicleInfo.trim() : 'Honda CD 70',
+        bio: bio.trim().isNotEmpty ? bio.trim() : 'Certified ApexFix Specialist',
+        todayEarnings: 0.0,
+        totalWalletBalance: 0.0,
+        isVerified: true,
+      );
+
+      _incomingRequests = _db.getIncomingJobs();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   void toggleAvailability() {
@@ -198,6 +241,11 @@ class TechnicianProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    if (Firebase.apps.isNotEmpty) {
+      try {
+        await FirebaseAuth.instance.signOut();
+      } catch (_) {}
+    }
     _currentTechnician = null;
     _activeJob = null;
     _incomingRequests.clear();

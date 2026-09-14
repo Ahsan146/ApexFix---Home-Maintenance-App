@@ -1,0 +1,98 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------------------------------------------------------------
+    // Security Helper Functions
+    // -------------------------------------------------------------
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // -------------------------------------------------------------
+    // Categories: Read-only for clients, admin SDK write only
+    // -------------------------------------------------------------
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // -------------------------------------------------------------
+    // Services: Read-only catalog, admin SDK write only
+    // -------------------------------------------------------------
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // -------------------------------------------------------------
+    // Technicians: Public catalog read, technician self-update
+    // -------------------------------------------------------------
+    match /technicians/{technicianId} {
+      allow read: if true;
+      allow create, delete: if false;
+      allow update: if isOwner(technicianId);
+    }
+
+    // -------------------------------------------------------------
+    // Customers: Strictly isolated to the authenticated customer
+    // -------------------------------------------------------------
+    match /customers/{customerId} {
+      allow read: if isOwner(customerId);
+      allow create, update: if isOwner(customerId)
+        && request.resource.data.email is string
+        && request.resource.data.fullName is string;
+      allow delete: if isOwner(customerId);
+    }
+
+    // -------------------------------------------------------------
+    // Bookings: Least-privilege access, strict state machine
+    // -------------------------------------------------------------
+    match /bookings/{bookingId} {
+      // Read: Customer owner OR assigned technician OR searching dispatch queue
+      allow read: if isAuthenticated() && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.technicianId == request.auth.uid ||
+        resource.data.status == 'searchingTechnician'
+      );
+
+      // Create: Authenticated customer creating their own booking with authoritative schema
+      allow create: if isAuthenticated()
+        && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.serviceCharge.baseServiceFee is number
+        && request.resource.data.serviceCharge.baseServiceFee >= 1000
+        && request.resource.data.serviceCharge.total is number
+        && request.resource.data.serviceCharge.total >= request.resource.data.serviceCharge.baseServiceFee
+        && request.resource.data.serviceName is string
+        && request.resource.data.status == 'searchingTechnician';
+
+      // Update: Authorized state transitions enforced by role and current state
+      allow update: if isAuthenticated() && (
+        // 1. Customer cancelling an active booking
+        (resource.data.customerId == request.auth.uid
+          && request.resource.data.status == 'cancelled'
+          && resource.data.status in ['searchingTechnician', 'pending', 'accepted'])
+        ||
+        // 2. Verified technician accepting an available job from dispatch
+        (resource.data.status == 'searchingTechnician'
+          && request.resource.data.status == 'accepted'
+          && request.resource.data.technicianId == request.auth.uid)
+        ||
+        // 3. Assigned technician advancing lifecycle along the authoritative state machine
+        (resource.data.technicianId == request.auth.uid && (
+          (resource.data.status == 'accepted' && request.resource.data.status == 'onTheWay') ||
+          (resource.data.status == 'onTheWay' && request.resource.data.status == 'arrived') ||
+          (resource.data.status == 'arrived' && request.resource.data.status == 'inProgress') ||
+          (resource.data.status == 'inProgress' && request.resource.data.status == 'completed')
+        ))
+      );
+
+      // Delete: Strictly prohibited from clients (preserves audit trail)
+      allow delete: if false;
+    }
+  }
+}

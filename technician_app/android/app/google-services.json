@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "572335403894",
+    "project_id": "apexfix",
+    "storage_bucket": "apexfix.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:572335403894:android:2f3b116e053f664705c057",
+        "android_client_info": {
+          "package_name": "com.example.apexfix_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwt_w8PuV7aPijHP_oh-FLyC-aeRiD6M8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+

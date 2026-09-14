@@ -128,7 +128,7 @@ class DatabaseService {
 
   Stream<List<Booking>> streamCustomerBookings(String customerId) {
     return _bookingsController.stream.map(
-      (list) => list.where((b) => b.customerId == customerId || b.customerId.startsWith('cust_')).toList(),
+      (list) => list.where((b) => b.customerId == customerId).toList(),
     );
   }
 
@@ -143,7 +143,7 @@ class DatabaseService {
 
   List<Booking> getBookingsForCustomer(String customerId) {
     return _bookingsCache.values
-        .where((b) => b.customerId == customerId || b.customerId.startsWith('cust_'))
+        .where((b) => b.customerId == customerId)
         .toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }

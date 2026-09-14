@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/technician_provider.dart';
 
@@ -48,12 +49,13 @@ class _TechnicianLoginScreenState extends State<TechnicianLoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (email.isEmpty) {
-      setState(() => _errorMessage = 'Please enter your email or phone.');
+    final emailRegex = RegExp(r'^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$');
+    if (email.isEmpty || !emailRegex.hasMatch(email) || email.length > 100) {
+      setState(() => _errorMessage = 'Please enter a valid email address (max 100 characters).');
       return;
     }
-    if (password.length < 6) {
-      setState(() => _errorMessage = 'Password must be at least 6 characters.');
+    if (password.length < 6 || password.length > 128) {
+      setState(() => _errorMessage = 'Password must be between 6 and 128 characters.');
       return;
     }
 
@@ -63,12 +65,13 @@ class _TechnicianLoginScreenState extends State<TechnicianLoginScreen> {
       final name = _nameController.text.trim();
       final phone = _phoneController.text.trim();
 
-      if (name.isEmpty) {
-        setState(() => _errorMessage = 'Please enter your full name.');
+      if (name.isEmpty || name.length > 80) {
+        setState(() => _errorMessage = 'Please enter your full name (max 80 characters).');
         return;
       }
-      if (phone.isEmpty) {
-        setState(() => _errorMessage = 'Please enter your contact phone.');
+      final phoneRegex = RegExp(r'^\+?[0-9\s\-]{10,20}$');
+      if (phone.isEmpty || !phoneRegex.hasMatch(phone)) {
+        setState(() => _errorMessage = 'Please enter a valid contact phone (e.g. +92 300 1234567).');
         return;
       }
       if (_selectedSpecialties.isEmpty) {
@@ -448,85 +451,86 @@ class _TechnicianLoginScreenState extends State<TechnicianLoginScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 16),
-
-                // Quick Demo Partner Accounts Section
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF334155)),
+                // Quick Demo Partner Accounts Section (Debug Mode Only)
+                if (kDebugMode) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF334155)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.bolt, color: Color(0xFF38BDF8), size: 16),
+                            SizedBox(width: 4),
+                            Text(
+                              'Quick Demo Partner Accounts (Development Only):',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF94A3B8),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            ActionChip(
+                              avatar: const CircleAvatar(
+                                backgroundColor: Color(0xFF2563EB),
+                                child: Text('T', style: TextStyle(color: Colors.white, fontSize: 10)),
+                              ),
+                              label: const Text('Tariq Mahmood (HVAC)', style: TextStyle(fontSize: 11, color: Colors.white)),
+                              backgroundColor: const Color(0xFF0F172A),
+                              side: const BorderSide(color: Color(0xFF334155)),
+                              onPressed: () {
+                                _emailController.text = 'tariq.hvac@apexfix.pk';
+                                _passwordController.text = 'password123';
+                                provider.login(email: 'tariq.hvac@apexfix.pk', password: 'password123');
+                              },
+                            ),
+                            ActionChip(
+                              avatar: const CircleAvatar(
+                                backgroundColor: Color(0xFFD97706),
+                                child: Text('K', style: TextStyle(color: Colors.white, fontSize: 10)),
+                              ),
+                              label: const Text('Kamran Ali (Electric & Solar)', style: TextStyle(fontSize: 11, color: Colors.white)),
+                              backgroundColor: const Color(0xFF0F172A),
+                              side: const BorderSide(color: Color(0xFF334155)),
+                              onPressed: () {
+                                _emailController.text = 'kamran.electric@apexfix.pk';
+                                _passwordController.text = 'password123';
+                                provider.login(email: 'kamran.electric@apexfix.pk', password: 'password123');
+                              },
+                            ),
+                            ActionChip(
+                              avatar: const CircleAvatar(
+                                backgroundColor: Color(0xFF059669),
+                                child: Text('Z', style: TextStyle(color: Colors.white, fontSize: 10)),
+                              ),
+                              label: const Text('Zubair Ahmed (Plumbing)', style: TextStyle(fontSize: 11, color: Colors.white)),
+                              backgroundColor: const Color(0xFF0F172A),
+                              side: const BorderSide(color: Color(0xFF334155)),
+                              onPressed: () {
+                                _emailController.text = 'zubair.plumbing@apexfix.pk';
+                                _passwordController.text = 'password123';
+                                provider.login(email: 'zubair.plumbing@apexfix.pk', password: 'password123');
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.bolt, color: Color(0xFF38BDF8), size: 16),
-                          SizedBox(width: 4),
-                          Text(
-                            'Quick Demo Partner Accounts (Tap to Sign In):',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF94A3B8),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 6,
-                        children: [
-                          ActionChip(
-                            avatar: const CircleAvatar(
-                              backgroundColor: Color(0xFF2563EB),
-                              child: Text('T', style: TextStyle(color: Colors.white, fontSize: 10)),
-                            ),
-                            label: const Text('Tariq Mahmood (HVAC)', style: TextStyle(fontSize: 11, color: Colors.white)),
-                            backgroundColor: const Color(0xFF0F172A),
-                            side: const BorderSide(color: Color(0xFF334155)),
-                            onPressed: () {
-                              _emailController.text = 'tariq.hvac@apexfix.pk';
-                              _passwordController.text = 'password123';
-                              provider.login(email: 'tariq.hvac@apexfix.pk', password: 'password123');
-                            },
-                          ),
-                          ActionChip(
-                            avatar: const CircleAvatar(
-                              backgroundColor: Color(0xFFD97706),
-                              child: Text('K', style: TextStyle(color: Colors.white, fontSize: 10)),
-                            ),
-                            label: const Text('Kamran Ali (Electric & Solar)', style: TextStyle(fontSize: 11, color: Colors.white)),
-                            backgroundColor: const Color(0xFF0F172A),
-                            side: const BorderSide(color: Color(0xFF334155)),
-                            onPressed: () {
-                              _emailController.text = 'kamran.electric@apexfix.pk';
-                              _passwordController.text = 'password123';
-                              provider.login(email: 'kamran.electric@apexfix.pk', password: 'password123');
-                            },
-                          ),
-                          ActionChip(
-                            avatar: const CircleAvatar(
-                              backgroundColor: Color(0xFF059669),
-                              child: Text('Z', style: TextStyle(color: Colors.white, fontSize: 10)),
-                            ),
-                            label: const Text('Zubair Ahmed (Plumbing)', style: TextStyle(fontSize: 11, color: Colors.white)),
-                            backgroundColor: const Color(0xFF0F172A),
-                            side: const BorderSide(color: Color(0xFF334155)),
-                            onPressed: () {
-                              _emailController.text = 'zubair.plumbing@apexfix.pk';
-                              _passwordController.text = 'password123';
-                              provider.login(email: 'zubair.plumbing@apexfix.pk', password: 'password123');
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ],
             ),
           ),

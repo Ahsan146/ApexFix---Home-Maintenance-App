@@ -1,0 +1,34 @@
+name: Verify & Security Gate CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-and-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Customer App - Dependencies & Analysis
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+
+      - name: Technician App - Dependencies & Analysis
+        run: |
+          cd technician_app
+          flutter pub get
+          flutter analyze
+          flutter test
+
