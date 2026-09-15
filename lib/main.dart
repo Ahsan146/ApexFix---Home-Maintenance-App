@@ -9,6 +9,8 @@ import 'screens/home_screen.dart';
 import 'screens/bookings_list_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/services_screen.dart';
+import 'screens/track_overview_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +36,7 @@ class ApexFixApp extends StatelessWidget {
 class MainNavigationShell extends StatefulWidget { const MainNavigationShell({super.key}); @override State<MainNavigationShell> createState() => _MainNavigationShellState(); }
 class _MainNavigationShellState extends State<MainNavigationShell> {
   int _currentIndex = 0;
-  final _screens = const [HomeScreen(), BookingsListScreen(), ProfileScreen()];
+  final _screens = const [HomeScreen(), BookingsListScreen(), TrackOverviewScreen(), ServicesScreen(), ProfileScreen()];
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppProvider>();
@@ -44,6 +46,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       child: NavigationBar(height: 70, selectedIndex: _currentIndex, backgroundColor: Colors.white, surfaceTintColor: Colors.white, indicatorColor: Color(0xFFEAE8FF), labelBehavior: NavigationDestinationLabelBehavior.alwaysShow, onDestinationSelected: (i) => setState(() => _currentIndex = i), destinations: const [
         NavigationDestination(icon: Icon(Icons.home_outlined, color: muted), selectedIcon: Icon(Icons.home_rounded, color: primary), label: 'Home'),
         NavigationDestination(icon: Icon(Icons.receipt_long_outlined, color: muted), selectedIcon: Icon(Icons.receipt_long_rounded, color: primary), label: 'Bookings'),
+        NavigationDestination(icon: Icon(Icons.location_on_outlined, color: muted), selectedIcon: Icon(Icons.location_on_rounded, color: primary), label: 'Track'),
+        NavigationDestination(icon: Icon(Icons.grid_view_outlined, color: muted), selectedIcon: Icon(Icons.grid_view_rounded, color: primary), label: 'Services'),
         NavigationDestination(icon: Icon(Icons.person_outline_rounded, color: muted), selectedIcon: Icon(Icons.person_rounded, color: primary), label: 'Profile'),
       ]),
     ));
