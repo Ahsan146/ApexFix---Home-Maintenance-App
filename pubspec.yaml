@@ -27,4 +27,4 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/2026346.webp"
+  image_path: "android/app/src/main/res/drawable/splash_logo.png"
