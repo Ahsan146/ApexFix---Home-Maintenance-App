@@ -5,31 +5,138 @@ import '../services/mock_data.dart';
 import '../models/models.dart';
 import 'category_screen.dart';
 import 'track_booking_screen.dart';
+import 'services_screen.dart';
 import '../apexfix_theme.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
-    final app = context.watch<AppProvider>(); final customer = app.currentCustomer; final active = app.activeBooking;
-    return Scaffold(backgroundColor: pageBg, appBar: AppBar(backgroundColor: navy, titleSpacing: 18, title: const ApexFixMark(compact: true), actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none_rounded, color: Colors.white)), const SizedBox(width: 8), if (customer != null) Padding(padding: const EdgeInsets.only(right: 16), child: CircleAvatar(radius: 17, backgroundColor: const Color(0xFF5146D8), child: Text(customer.fullName.isNotEmpty ? customer.fullName[0].toUpperCase() : 'U', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800))))]),
-      body: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(16, 18, 16, 28), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('GOOD TO SEE YOU', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.6, color: primary)), const SizedBox(height: 5),
-        Text(customer != null ? 'Good morning, ${customer.fullName.split(' ').first}.' : 'Good morning.', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800, letterSpacing: -.7)), const SizedBox(height: 4),
-        const Text('Everything you need to keep your home running smoothly.', style: TextStyle(fontSize: 12, color: muted)), const SizedBox(height: 18),
-        Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: line)), child: const Row(children: [Icon(Icons.search_rounded, color: muted, size: 20), SizedBox(width: 10), Text('Search a service, repair or technician...', style: TextStyle(color: muted, fontSize: 12)), Spacer(), Icon(Icons.tune_rounded, color: muted, size: 17)])), const SizedBox(height: 16),
-        if (active != null && active.status != BookingStatus.completed && active.status != BookingStatus.cancelled) _activeCard(context, active),
-        if (active != null && active.status != BookingStatus.completed && active.status != BookingStatus.cancelled) const SizedBox(height: 16),
-        _sectionTitle('Quick dispatch', 'Emergency help'), const SizedBox(height: 10),
-        Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), border: Border.all(color: const Color(0xFFFFD9B5))), child: Row(children: [Container(width: 42, height: 42, decoration: BoxDecoration(color: orange, borderRadius: BorderRadius.circular(11)), child: const Icon(Icons.flash_on_rounded, color: Colors.white)), const SizedBox(width: 12), const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('24/7 Rapid Emergency Dispatch', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)), SizedBox(height: 3), Text('Short circuit, severe leak or urgent breakdown', style: TextStyle(fontSize: 11, color: muted))])), const Icon(Icons.arrow_forward_rounded, color: primary, size: 19)])), const SizedBox(height: 22),
-        _sectionTitle('Services', 'View all'), const SizedBox(height: 11),
-        GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), itemCount: MockData.categories.length, gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: .91), itemBuilder: (context, i) { final cat = MockData.categories[i]; return InkWell(borderRadius: BorderRadius.circular(15), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryScreen(category: cat))), child: Container(padding: const EdgeInsets.all(9), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), border: Border.all(color: line)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Container(width: 42, height: 42, decoration: BoxDecoration(color: const Color(0xFFEDEBFF), borderRadius: BorderRadius.circular(11)), child: Icon(_getCategoryIcon(cat.iconName), color: primary, size: 22)), const SizedBox(height: 8), Text(cat.title, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800)), const SizedBox(height: 2), Text('From PKR ${cat.startingPrice.toInt()}', style: const TextStyle(fontSize: 9, color: muted))]))); }),
-        const SizedBox(height: 22),
-        Container(padding: const EdgeInsets.all(15), decoration: BoxDecoration(color: navy, borderRadius: BorderRadius.circular(16)), child: const Row(children: [Icon(Icons.verified_user_rounded, color: Color(0xFF61E6B1), size: 27), SizedBox(width: 13), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('ApexFix Service Guarantee', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)), SizedBox(height: 3), Text('Verified technicians, transparent pricing and a 30-day revisit warranty.', style: TextStyle(color: Color(0xFFB9C1D9), fontSize: 10.5, height: 1.35))]))])),
-      ])),
+    final app = context.watch<AppProvider>();
+    final customer = app.currentCustomer;
+    final active = app.activeBooking;
+
+    return Scaffold(
+      backgroundColor: pageBg,
+      appBar: AppBar(
+        backgroundColor: navy,
+        titleSpacing: 18,
+        title: const ApexFixMark(compact: true),
+        actions: [
+          IconButton(
+            tooltip: 'Notifications',
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You are all caught up.'))),
+            icon: const Icon(Icons.notifications_none_rounded, color: Colors.white),
+          ),
+          const SizedBox(width: 8),
+          if (customer != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: CircleAvatar(
+                radius: 17,
+                backgroundColor: const Color(0xFF5146D8),
+                child: Text(customer.fullName.isNotEmpty ? customer.fullName[0].toUpperCase() : 'U', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
+              ),
+            ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('GOOD TO SEE YOU', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.6, color: primary)),
+          const SizedBox(height: 5),
+          Text(customer != null ? 'Good morning, ${customer.fullName.split(' ').first}.' : 'Good morning.', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800, letterSpacing: -.7)),
+          const SizedBox(height: 4),
+          const Text('Everything you need to keep your home running smoothly.', style: TextStyle(fontSize: 12, color: muted)),
+          const SizedBox(height: 18),
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ServicesScreen())),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: line)),
+              child: const Row(children: [Icon(Icons.search_rounded, color: muted, size: 20), SizedBox(width: 10), Expanded(child: Text('Search a service, repair or technician...', style: TextStyle(color: muted, fontSize: 12))), Icon(Icons.tune_rounded, color: muted, size: 17)]),
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (active != null && active.status != BookingStatus.completed && active.status != BookingStatus.cancelled) _activeCard(context, active),
+          if (active != null && active.status != BookingStatus.completed && active.status != BookingStatus.cancelled) const SizedBox(height: 16),
+          _sectionTitle('Quick dispatch', 'Emergency help', () => _showEmergencyDialog(context)),
+          const SizedBox(height: 10),
+          InkWell(
+            borderRadius: BorderRadius.circular(15),
+            onTap: () => _showEmergencyDialog(context),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), border: Border.all(color: const Color(0xFFFFD9B5))),
+              child: const Row(children: [Container(width: 42, height: 42, decoration: BoxDecoration(color: orange, borderRadius: BorderRadius.all(Radius.circular(11))), child: Icon(Icons.flash_on_rounded, color: Colors.white)), SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('24/7 Rapid Emergency Dispatch', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)), SizedBox(height: 3), Text('Short circuit, severe leak or urgent breakdown', style: TextStyle(fontSize: 11, color: muted))])), Icon(Icons.arrow_forward_rounded, color: primary, size: 19)]),
+            ),
+          ),
+          const SizedBox(height: 22),
+          _sectionTitle('Services', 'View all', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ServicesScreen()))),
+          const SizedBox(height: 11),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: MockData.categories.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: .91),
+            itemBuilder: (context, i) {
+              final cat = MockData.categories[i];
+              return InkWell(
+                borderRadius: BorderRadius.circular(15),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryScreen(category: cat))),
+                child: Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), border: Border.all(color: line)),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Container(width: 42, height: 42, decoration: BoxDecoration(color: const Color(0xFFEDEBFF), borderRadius: BorderRadius.circular(11)), child: Icon(_getCategoryIcon(cat.iconName), color: primary, size: 22)),
+                    const SizedBox(height: 8),
+                    Text(cat.title, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 2),
+                    Text('From PKR ${cat.startingPrice.toInt()}', style: const TextStyle(fontSize: 9, color: muted)),
+                  ]),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 22),
+          Container(padding: const EdgeInsets.all(15), decoration: BoxDecoration(color: navy, borderRadius: BorderRadius.circular(16)), child: const Row(children: [Icon(Icons.verified_user_rounded, color: Color(0xFF61E6B1), size: 27), SizedBox(width: 13), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('ApexFix Service Guarantee', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)), SizedBox(height: 3), Text('Verified technicians, transparent pricing and a 30-day revisit warranty.', style: TextStyle(color: Color(0xFFB9C1D9), fontSize: 10.5, height: 1.35))]))])),
+        ]),
+      ),
     );
   }
-  Widget _sectionTitle(String title, String action) => Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)), Text(action, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: primary))]);
-  Widget _activeCard(BuildContext context, Booking booking) => InkWell(borderRadius: BorderRadius.circular(16), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TrackBookingScreen(bookingId: booking.id))), child: Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: navy, borderRadius: BorderRadius.circular(16), boxShadow: const [BoxShadow(color: Color(0x18000000), blurRadius: 18, offset: Offset(0, 7))]), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5), decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(7)), child: const Row(children: [Icon(Icons.circle, size: 6, color: Color(0xFF3DDF9A)), SizedBox(width: 6), Text('ACTIVE BOOKING', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: .6))])), Text(booking.bookingNumber, style: const TextStyle(color: Color(0xFFB9C1D9), fontSize: 10, fontWeight: FontWeight.w700))]), const SizedBox(height: 12), Text(booking.serviceName, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)), const SizedBox(height: 4), const Text('Your technician is being dispatched nearby.', style: TextStyle(color: Color(0xFFB9C1D9), fontSize: 11)), const SizedBox(height: 14), Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('PKR ${booking.serviceCharge.total.toInt()}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)), Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)), child: const Text('Track booking →', style: TextStyle(color: primary, fontSize: 10, fontWeight: FontWeight.w800)))])])));
+
+  Widget _sectionTitle(String title, String action, VoidCallback onTap) => Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)), InkWell(onTap: onTap, borderRadius: BorderRadius.circular(6), child: Padding(padding: const EdgeInsets.all(4), child: Text(action, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: primary))))]);
+
+  Widget _activeCard(BuildContext context, Booking booking) => InkWell(
+    borderRadius: BorderRadius.circular(16),
+    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TrackBookingScreen(bookingId: booking.id))),
+    child: Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: navy, borderRadius: BorderRadius.circular(16), boxShadow: const [BoxShadow(color: Color(0x18000000), blurRadius: 18, offset: Offset(0, 7))]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5), decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(7)), child: const Row(children: [Icon(Icons.circle, size: 6, color: Color(0xFF3DDF9A)), SizedBox(width: 6), Text('ACTIVE BOOKING', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: .6))])),
+          Text(booking.bookingNumber, style: const TextStyle(color: Color(0xFFB9C1D9), fontSize: 10, fontWeight: FontWeight.w700)),
+        ]),
+        const SizedBox(height: 12),
+        Text(booking.serviceName, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 4),
+        const Text('Your technician is being dispatched nearby.', style: TextStyle(color: Color(0xFFB9C1D9), fontSize: 11)),
+        const SizedBox(height: 14),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('PKR ${booking.serviceCharge.total.toInt()}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)), Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)), child: const Text('Track booking →', style: TextStyle(color: primary, fontSize: 10, fontWeight: FontWeight.w800)))])
+      ]),
+    ),
+  );
+
+  void _showEmergencyDialog(BuildContext context) {
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('Emergency dispatch'),
+      content: const Text('Tell us what happened and ApexFix will prioritize your request.'),
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')), ElevatedButton(onPressed: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => const ServicesScreen())); }, child: const Text('Choose a service'))],
+    ));
+  }
+
   IconData _getCategoryIcon(String name) { switch (name) { case 'wind': return Icons.air_rounded; case 'zap': return Icons.bolt_rounded; case 'droplet': return Icons.water_drop_rounded; case 'cpu': return Icons.kitchen_rounded; case 'hammer': return Icons.handyman_rounded; case 'sun': return Icons.solar_power_rounded; default: return Icons.build_rounded; } }
 }
